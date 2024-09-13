@@ -4,10 +4,10 @@ import CityFilter from "./components/RegionFilter";
 import RealEstates from "./components/realestates"
 import RegionFilter from "./components/RegionFilter";
 export default function Home() {
-  const [selectedCities, setSelectedCities] = useState<number[]>([]);
+  const [selectedRegions, setSelectedRegions] = useState<number[]>([]);
 
-  const handleFilterChange = (cities: number[]) => {
-    setSelectedCities(cities); // Updates the selected cities
+  const handleFilterChange = (Regions: number[]) => {
+    setSelectedRegions(Regions);
   };
 
   return (

@@ -40,8 +40,8 @@ export default function RegionFilter({ onChange }: RegionFilterProps) {
 
   return (
     <div className="flex justify-between items-center">
-      {/* Dropdown Filter */}
-      <div className="relative">
+      <div className="relative z-50">
+        {" "}
         <button
           onClick={toggleDropdown}
           className="px-4 py-2 border rounded-md bg-white shadow-sm focus:outline-none flex items-center"
@@ -81,9 +81,8 @@ export default function RegionFilter({ onChange }: RegionFilterProps) {
             )}
           </span>
         </button>
-
         {isOpen && (
-          <div className="absolute left-0 mt-2 p-4 border rounded-lg shadow-md bg-white w-[731px] max-w-lg">
+          <div className="absolute left-0 mt-2 p-4 border rounded-lg shadow-md bg-white w-[731px] max-w-lg z-50">
             <div className="grid grid-cols-3 gap-y-[16px]">
               {regions.map((region) => (
                 <label key={region.id} className="inline-flex items-center">
@@ -108,7 +107,6 @@ export default function RegionFilter({ onChange }: RegionFilterProps) {
         )}
       </div>
 
-      {/* Action Buttons on the Right */}
       <div className="flex space-x-[16px]">
         <button className="bg-red-500 text-white font-medium px-6 py-2 h-[47px] w-[230px] rounded-md hover:bg-red-600">
           + ლისტინგის დამატება
