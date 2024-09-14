@@ -9,7 +9,7 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        firaGo: ["FiraGO", "sans-serif"], // Add this line to include FiraGo
+        firaGo: ["FiraGO", "sans-serif"],
       },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",

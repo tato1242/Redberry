@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { getRegions, Region } from "../services/api";
+import AgentsModal from "./AgentsModal";
 
 interface RegionFilterProps {
   onChange: (selectedRegions: number[]) => void;
@@ -9,7 +10,7 @@ export default function RegionFilter({ onChange }: RegionFilterProps) {
   const [regions, setRegions] = useState<Region[]>([]);
   const [selectedRegions, setSelectedRegions] = useState<number[]>([]);
   const [isOpen, setIsOpen] = useState(false);
-
+  const [isModalOpen, setModalOpen] = useState(false);
   useEffect(() => {
     async function fetchRegions() {
       try {
@@ -38,10 +39,17 @@ export default function RegionFilter({ onChange }: RegionFilterProps) {
     setIsOpen(!isOpen);
   };
 
+  const openModal = () => {
+    setModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setModalOpen(false);
+  };
+
   return (
     <div className="flex justify-between items-center">
       <div className="relative z-50">
-        {" "}
         <button
           onClick={toggleDropdown}
           className="px-4 py-2 border rounded-md bg-white shadow-sm focus:outline-none flex items-center"
@@ -99,7 +107,7 @@ export default function RegionFilter({ onChange }: RegionFilterProps) {
             </div>
             <button
               onClick={handleApply}
-              className="float-right w-1/6 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+              className="float-right w-1/6 py-2 mt-4 bg-red-500 text-white rounded-md hover:bg-red-600"
             >
               არჩევა
             </button>
@@ -111,10 +119,15 @@ export default function RegionFilter({ onChange }: RegionFilterProps) {
         <button className="bg-red-500 text-white font-medium px-6 py-2 h-[47px] w-[230px] rounded-md hover:bg-red-600">
           + ლისტინგის დამატება
         </button>
-        <button className="border border-red-500 text-red-500 font-medium h-[47px] w-[230px] px-6 py-2 rounded-md hover:bg-red-100">
+
+        <button
+          className="border border-red-500 text-red-500 font-medium h-[47px] w-[230px] px-6 py-2 rounded-md hover:bg-red-100"
+          onClick={openModal}
+        >
           + აგენტის დამატება
         </button>
       </div>
+      <AgentsModal isOpen={isModalOpen} onClose={closeModal} />
     </div>
   );
 }
