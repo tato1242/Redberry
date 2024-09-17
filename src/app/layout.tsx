@@ -1,9 +1,9 @@
-
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import Link from "next/link";
 import "./globals.css";
-import "@fontsource/firago/400.css"; 
-import "@fontsource/firago/700.css"; 
+import "@fontsource/firago/400.css";
+import "@fontsource/firago/700.css";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -14,19 +14,21 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="en">
       <body className={inter.className}>
         <header>
-          <div className="border-[1px] border-gray-300  px-[162px] py-[36px] h-[100px] w-full ">
-          <img  className=" h-[24px] w-[150px] " src="LOGO.png" alt="" />
+          <div className="border-[1px] border-gray-300 px-[162px] py-[36px] h-[100px] w-full">
+            <Link href="/">
+              <img className="h-[24px] w-[150px] cursor-pointer" src="LOGO.png" alt="Logo" />
+            </Link>
           </div>
         </header>
         {children}
-        </body>
+      </body>
     </html>
   );
 }

@@ -1,6 +1,5 @@
 "use client"
 import { useState } from "react";
-import CityFilter from "./components/RegionFilter";
 import RealEstates from "./components/realestates"
 import RegionFilter from "./components/RegionFilter";
 export default function Home() {

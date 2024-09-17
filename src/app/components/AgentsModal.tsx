@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import FileUpload from "./FileUpload";
 
 interface AgentsModalProps {
   onClose: () => void;
@@ -7,49 +8,76 @@ interface AgentsModalProps {
 }
 
 const AgentsModal = ({ onClose, isOpen }: AgentsModalProps) => {
-  const [name, setName] = useState(localStorage.getItem("name") || "");
-  const [surname, setSurname] = useState(localStorage.getItem("surname") || "");
-  const [email, setEmail] = useState(localStorage.getItem("email") || "");
+  const [name, setName] = useState("");
+  const [surname, setSurname] = useState("");
+  const [email, setEmail] = useState("");
   const [avatar, setAvatar] = useState<File | null>(null);
-  const [phone, setPhone] = useState(localStorage.getItem("phone") || "");
+  const [phone, setPhone] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [validations, setValidations] = useState({
+    name: "default",
+    surname: "default",
+    email: "default",
+    phone: "default",
+    avatar: "default",
+  });
 
-  useEffect(() => {
-    localStorage.setItem("name", name);
-  }, [name]);
-
-  useEffect(() => {
-    localStorage.setItem("surname", surname);
-  }, [surname]);
-
-  useEffect(() => {
-    localStorage.setItem("email", email);
-  }, [email]);
-
-  useEffect(() => {
-    localStorage.setItem("phone", phone);
-  }, [phone]);
+  const validateField = (field: string, value: string | File | null) => {
+    if (value === null) {
+      return "invalid";
+    }
+  
+    switch (field) {
+      case "name":
+      case "surname":
+        return typeof value === "string" && value.length >= 2 ? "valid" : "invalid";
+      case "email":
+        return typeof value === "string" && value.endsWith("@redberry.ge") ? "valid" : "invalid";
+      case "phone":
+        return typeof value === "string" && /5\d{8}$/.test(value) ? "valid" : "invalid";
+      case "avatar":
+        return value instanceof File ? "valid" : "invalid";
+      default:
+        return "default";
+    }
+  };
   
 
-  const validateForm = () => {
-    if (name.length < 2) return "Name should have at least 2 characters";
-    if (surname.length < 2) return "Surname should have at least 2 characters";
-    if (!email.endsWith("@redberry.ge")) return "Email must end with @redberry.ge";
-    if (!/5\d{8}$/.test(phone)) return "Phone number must be in the format 5XXXXXXXXX";
-    if (!avatar) return "Avatar is required";
-    return "";
+  const handleInputChange = (field: string, value: string) => {
+    switch (field) {
+      case "name":
+        setName(value);
+        break;
+      case "surname":
+        setSurname(value);
+        break;
+      case "email":
+        setEmail(value);
+        break;
+      case "phone":
+        setPhone(value);
+        break;
+      default:
+        break;
+    }
+    setValidations((prev) => ({
+      ...prev,
+      [field]: validateField(field, value),
+    }));
   };
 
+  
+
   const handleSubmit = async () => {
-    const validationError = validateForm();
-    if (validationError) {
-      setErrorMessage(validationError);
+    const isFormValid =
+      Object.values(validations).every((v) => v === "valid") && avatar;
+    if (!isFormValid) {
+      setErrorMessage("გთხოვთ შეავსეთ ყველა ველი.");
       return;
     }
 
     try {
       const token = "9d009666-7a1f-45e4-b985-baa4be98f866";
-
       const formData = new FormData();
       formData.append("name", name);
       formData.append("surname", surname);
@@ -67,7 +95,7 @@ const AgentsModal = ({ onClose, isOpen }: AgentsModalProps) => {
         }
       );
 
-      alert("Agent added successfully");
+      alert("აგენტი წარმატებით დაემატა");
       localStorage.removeItem("name");
       localStorage.removeItem("surname");
       localStorage.removeItem("email");
@@ -84,71 +112,93 @@ const AgentsModal = ({ onClose, isOpen }: AgentsModalProps) => {
     }
   };
 
+  const getInputClasses = (status: string) => {
+    switch (status) {
+      case "valid":
+        return "border-green-500 text-green-500";
+      case "invalid":
+        return "border-red-500 text-red-500";
+      default:
+        return "border-gray-300";
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-30 flex justify-center items-center z-50">
-      <div className="bg-white p-8 rounded-xl shadow-lg w-[750px]">
-        <h2 className="text-center text-2xl font-bold mb-6">აგენტის დამატება</h2>
+    <div className="fixed inset-0 font-firaGo bg-black bg-opacity-30 flex justify-center content-center items-center z-50">
+      <div className="bg-white p-8 rounded-xl shadow-lg  h-[784px] w-[1009px]">
+        <h2 className="text-center text-[32px] font-semibold mt-[75px]">აგენტის დამატება</h2>
         {errorMessage && <p className="text-red-500 text-center">{errorMessage}</p>}
 
-        <div className="grid grid-cols-2 gap-4 mb-4">
+        <div className="grid grid-cols-2 gap-4 mb-4 mt-[99px]">
           <div>
-            <label htmlFor="name" className="block font-medium mb-1">სახელი *</label>
+            <label htmlFor="name" className="w-[384px] font-semibold h-[17px] text-[14px]">
+              სახელი *
+            </label>
             <input
               type="text"
               id="name"
-              className="border w-full p-2 rounded-md"
+              className={`border w-full p-2 rounded-md text-black ${getInputClasses(validations.name)}`}
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => handleInputChange("name", e.target.value)}
             />
+            {validations.name === "invalid" && <p className="text-red-500">✔მინიმუმ 2 სიმბოლო</p>}
+            {validations.name !== "invalid" && <p className="text-green-500">✔მინიმუმ 2 სიმბოლო</p>}
           </div>
+
           <div>
-            <label htmlFor="surname" className="block font-medium mb-1">გვარი *</label>
+            <label htmlFor="surname" className="w-[384px] font-semibold h-[17px] text-[14px]">გვარი *</label>
             <input
               type="text"
               id="surname"
-              className="border w-full p-2 rounded-md"
+              className={`border w-full p-2 rounded-md text-black ${getInputClasses(validations.surname)}`}
               value={surname}
-              onChange={(e) => setSurname(e.target.value)}
+              onChange={(e) => handleInputChange("surname", e.target.value)}
             />
+            {validations.surname === "invalid" && <p className="text-red-500">✔მინიმუმ 2 სიმბოლო</p>}
+            {validations.surname !== "invalid" && <p className="text-green-500">✔მინიმუმ 2 სიმბოლო</p>}
           </div>
 
           <div>
-            <label htmlFor="email" className="block font-medium mb-1">ელ-ფოსტა *</label>
+            <label htmlFor="email" className="w-[384px] font-semibold h-[17px] text-[14px]">ელ-ფოსტა *</label>
             <input
               type="email"
               id="email"
-              className="border w-full p-2 rounded-md"
+              className={`border w-full p-2 rounded-md text-black  ${getInputClasses(validations.email)}`}
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => handleInputChange("email", e.target.value)}
             />
+            {validations.email === "invalid" && <p className="text-red-500">გამოიყენეთ @redberry.ge ფოსტა</p>}
+            {validations.email !== "invalid" && <p className="text-green-500">გამოიყენეთ @redberry.ge ფოსტა</p>}
           </div>
 
           <div>
-            <label htmlFor="phone" className="block font-medium mb-1">ტელეფონის ნომერი *</label>
+            <label htmlFor="phone" className="w-[384px] font-semibold h-[17px] text-[14px]">ტელეფონის ნომერი *</label>
             <input
               type="text"
               id="phone"
-              className="border w-full p-2 rounded-md"
+              className={`border w-full p-2 rounded-md text-black  ${getInputClasses(validations.phone)}`}
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              onChange={(e) => handleInputChange("phone", e.target.value)}
             />
+            {validations.phone === "invalid" && <p className="text-red-500">✔მხოლოდ რიცხვები</p>}
+            {validations.phone !== "invalid" && <p className="text-green-500">✔მხოლოდ რიცხვები</p>}
           </div>
 
-          <div className="col-span-2">
-            <label htmlFor="avatar" className="block font-medium mb-1">აგენტის ფოტო *</label>
-            <div className="border-dashed border-2 border-gray-300 rounded-md p-4 text-center">
-              <input
-                type="file"
-                id="avatar"
-                onChange={(e) => setAvatar(e.target.files ? e.target.files[0] : null)}
-              />
-            </div>
+          <div className="ml-[80px] mt-[55px]">
+            <FileUpload onFileSelect={(file) => {
+              setAvatar(file);
+              setValidations((prev) => ({
+                ...prev,
+                avatar: validateField("avatar", file),
+              }));
+            }} />
+            {validations.avatar === "invalid" && <p className="text-red-500">ფოტოს დამატება აუცილებელია</p>}
           </div>
         </div>
 
-        <div className="flex justify-end space-x-4">
+        <div className="flex justify-end space-x-4 mt-[30px]">
           <button
             className="px-6 py-2 border border-red-500 text-red-500 rounded-md hover:bg-red-50"
             onClick={onClose}

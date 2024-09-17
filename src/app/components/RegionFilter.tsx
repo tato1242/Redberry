@@ -1,3 +1,5 @@
+"use client";
+import Link from "next/link";
 import { useState, useEffect } from "react";
 import { getRegions, Region } from "../services/api";
 import AgentsModal from "./AgentsModal";
@@ -11,6 +13,7 @@ export default function RegionFilter({ onChange }: RegionFilterProps) {
   const [selectedRegions, setSelectedRegions] = useState<number[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [isModalOpen, setModalOpen] = useState(false);
+
   useEffect(() => {
     async function fetchRegions() {
       try {
@@ -99,26 +102,27 @@ export default function RegionFilter({ onChange }: RegionFilterProps) {
                     value={region.id}
                     checked={selectedRegions.includes(region.id)}
                     onChange={() => handleCheckboxChange(region.id)}
-                    className="form-checkbox h-5 w-5"
+                    className="mr-2"
                   />
-                  <span className="ml-2 text-gray-700">{region.name}</span>
+                  <span>{region.name}</span>
                 </label>
               ))}
             </div>
             <button
+              className="mt-4 bg-red-500 text-white px-4 py-2 rounded-md"
               onClick={handleApply}
-              className="float-right w-1/6 py-2 mt-4 bg-red-500 text-white rounded-md hover:bg-red-600"
             >
-              არჩევა
+              Apply
             </button>
           </div>
         )}
       </div>
-
       <div className="flex space-x-[16px]">
-        <button className="bg-red-500 text-white font-medium px-6 py-2 h-[47px] w-[230px] rounded-md hover:bg-red-600">
-          + ლისტინგის დამატება
-        </button>
+        <Link href="/new-listing">
+          <button className="bg-red-500 text-white font-medium px-6 py-2 h-[47px] w-[230px] rounded-md hover:bg-red-600">
+            + ლისტინგის დამატება
+          </button>
+        </Link>
 
         <button
           className="border border-red-500 text-red-500 font-medium h-[47px] w-[230px] px-6 py-2 rounded-md hover:bg-red-100"
