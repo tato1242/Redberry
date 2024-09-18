@@ -23,8 +23,8 @@ const AgentsModal = ({ onClose, isOpen }: AgentsModalProps) => {
   });
 
   const validateField = (field: string, value: string | File | null) => {
-    if (value === null) {
-      return "invalid";
+    if (value === null || value === "") {
+      return "default";
     }
   
     switch (field) {
@@ -44,6 +44,7 @@ const AgentsModal = ({ onClose, isOpen }: AgentsModalProps) => {
   
 
   const handleInputChange = (field: string, value: string) => {
+
     switch (field) {
       case "name":
         setName(value);
@@ -132,32 +133,36 @@ const AgentsModal = ({ onClose, isOpen }: AgentsModalProps) => {
         {errorMessage && <p className="text-red-500 text-center">{errorMessage}</p>}
 
         <div className="grid grid-cols-2 gap-4 mb-4 mt-[99px]">
-          <div>
-            <label htmlFor="name" className="w-[384px] font-semibold h-[17px] text-[14px]">
-              სახელი *
-            </label>
-            <input
-              type="text"
-              id="name"
-              className={`border w-full p-2 rounded-md text-black ${getInputClasses(validations.name)}`}
-              value={name}
-              onChange={(e) => handleInputChange("name", e.target.value)}
-            />
-            {validations.name === "invalid" && <p className="text-red-500">✔მინიმუმ 2 სიმბოლო</p>}
-            {validations.name !== "invalid" && <p className="text-green-500">✔მინიმუმ 2 სიმბოლო</p>}
-          </div>
+        <div>
+  <label htmlFor="name" className="w-[384px] font-semibold h-[17px] text-[14px]">
+    სახელი *
+  </label>
+  <input
+    type="text"
+    id="name"
+    className={`border w-full p-2 rounded-md text-black ${validations.name === "default" ? "border-black" : getInputClasses(validations.name)}`}
+    value={name}
+    onChange={(e) => handleInputChange("name", e.target.value)}
+  />
+
+  <p className={`${validations.name === "invalid" ? "text-red-500" : validations.name === "valid" ? "text-green-500" : "text-black"}`}>
+    ✔მინიმუმ 2 სიმბოლო
+  </p>
+</div>
+
 
           <div>
             <label htmlFor="surname" className="w-[384px] font-semibold h-[17px] text-[14px]">გვარი *</label>
             <input
               type="text"
               id="surname"
-              className={`border w-full p-2 rounded-md text-black ${getInputClasses(validations.surname)}`}
+              className={`border w-full p-2 rounded-md text-black ${validations.surname === "default" ? "border-black" : getInputClasses(validations.surname)}`}
               value={surname}
               onChange={(e) => handleInputChange("surname", e.target.value)}
             />
-            {validations.surname === "invalid" && <p className="text-red-500">✔მინიმუმ 2 სიმბოლო</p>}
-            {validations.surname !== "invalid" && <p className="text-green-500">✔მინიმუმ 2 სიმბოლო</p>}
+              <p className={`${validations.surname === "invalid" ? "text-red-500" : validations.surname === "valid" ? "text-green-500" : "text-black"}`}>
+    ✔მინიმუმ 2 სიმბოლო
+  </p>
           </div>
 
           <div>
@@ -165,12 +170,11 @@ const AgentsModal = ({ onClose, isOpen }: AgentsModalProps) => {
             <input
               type="email"
               id="email"
-              className={`border w-full p-2 rounded-md text-black  ${getInputClasses(validations.email)}`}
+              className={`border w-full p-2 rounded-md text-black ${validations.email === "default" ? "border-black" : getInputClasses(validations.email)}`}
               value={email}
               onChange={(e) => handleInputChange("email", e.target.value)}
             />
-            {validations.email === "invalid" && <p className="text-red-500">გამოიყენეთ @redberry.ge ფოსტა</p>}
-            {validations.email !== "invalid" && <p className="text-green-500">გამოიყენეთ @redberry.ge ფოსტა</p>}
+            <p className={`${validations.email === "invalid" ? "text-red-500" : validations.email === "valid" ? "text-green-500" : "text-black"}`}>გამოიყენეთ @redberry.ge ფოსტა</p>
           </div>
 
           <div>
@@ -178,12 +182,13 @@ const AgentsModal = ({ onClose, isOpen }: AgentsModalProps) => {
             <input
               type="text"
               id="phone"
-              className={`border w-full p-2 rounded-md text-black  ${getInputClasses(validations.phone)}`}
+              maxLength={9}
+              className={`border w-full p-2 rounded-md text-black ${validations.phone === "default" ? "border-black" : getInputClasses(validations.phone)}`}
               value={phone}
               onChange={(e) => handleInputChange("phone", e.target.value)}
             />
-            {validations.phone === "invalid" && <p className="text-red-500">✔მხოლოდ რიცხვები</p>}
-            {validations.phone !== "invalid" && <p className="text-green-500">✔მხოლოდ რიცხვები</p>}
+            <p className={`${validations.phone === "invalid" ? "text-red-500" : validations.phone === "valid" ? "text-green-500" : "text-black"}`}>✔მხოლოდ რიცხვები</p>
+
           </div>
 
           <div className="ml-[80px] mt-[55px]">

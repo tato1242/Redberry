@@ -11,6 +11,7 @@ import {
   Region,
 } from "../services/api";
 import FileUpload from "./FileUpload";
+import AgentsModal from "./AgentsModal";
 
 interface NewListingFormProps {
   onSubmit: (data: any) => Promise<void>;
