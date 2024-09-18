@@ -31,7 +31,7 @@ const FileUpload = ({ onFileSelect }: FileUploadProps) => {
   return (
     <div>
       <label className="block font-semibold mb-1">ატვირთეთ ფოტო*</label>
-      <div className="relative w-[788px] h-[120px] bg-white border border-dashed border-[#2D3648] rounded-lg flex items-center justify-center">
+      <div className="relative w-[799px] h-[120px] bg-white border border-dashed border-[#2D3648] rounded-lg flex items-center justify-center">
         {!selectedImage ? (
           <>
             <input

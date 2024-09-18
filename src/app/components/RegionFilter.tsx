@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { getRegions, Region } from "../services/api";
+import { Agent, getRegions, Region } from "../services/api";
 import AgentsModal from "./AgentsModal";
 
 interface RegionFilterProps {
@@ -13,6 +13,7 @@ export default function RegionFilter({ onChange }: RegionFilterProps) {
   const [selectedRegions, setSelectedRegions] = useState<number[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [isModalOpen, setModalOpen] = useState(false);
+  const [agents, setAgents] = useState<Agent[]>([]);
 
   useEffect(() => {
     async function fetchRegions() {
@@ -48,6 +49,9 @@ export default function RegionFilter({ onChange }: RegionFilterProps) {
 
   const closeModal = () => {
     setModalOpen(false);
+  };
+  const handleAgentAdded = (newAgent: { id: number; name: string; surname: string }) => {
+    setAgents((prevAgents) => [...prevAgents, newAgent]);
   };
 
   return (
@@ -131,7 +135,7 @@ export default function RegionFilter({ onChange }: RegionFilterProps) {
           + აგენტის დამატება
         </button>
       </div>
-      <AgentsModal isOpen={isModalOpen} onClose={closeModal} />
+      <AgentsModal isOpen={isModalOpen} onClose={closeModal} onAgentAdded={handleAgentAdded} />
     </div>
   );
 }

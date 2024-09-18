@@ -1,13 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import axios from "axios";
 import FileUpload from "./FileUpload";
 
 interface AgentsModalProps {
   onClose: () => void;
   isOpen: boolean;
+  onAgentAdded: (newAgent: { id: number; name: string; surname: string }) => void;
 }
 
-const AgentsModal = ({ onClose, isOpen }: AgentsModalProps) => {
+const AgentsModal = ({ onClose, isOpen, onAgentAdded }: AgentsModalProps) => {
   const [name, setName] = useState("");
   const [surname, setSurname] = useState("");
   const [email, setEmail] = useState("");
@@ -26,7 +27,7 @@ const AgentsModal = ({ onClose, isOpen }: AgentsModalProps) => {
     if (value === null || value === "") {
       return "default";
     }
-  
+
     switch (field) {
       case "name":
       case "surname":
@@ -41,10 +42,8 @@ const AgentsModal = ({ onClose, isOpen }: AgentsModalProps) => {
         return "default";
     }
   };
-  
 
   const handleInputChange = (field: string, value: string) => {
-
     switch (field) {
       case "name":
         setName(value);
@@ -67,8 +66,6 @@ const AgentsModal = ({ onClose, isOpen }: AgentsModalProps) => {
     }));
   };
 
-  
-
   const handleSubmit = async () => {
     const isFormValid =
       Object.values(validations).every((v) => v === "valid") && avatar;
@@ -86,7 +83,7 @@ const AgentsModal = ({ onClose, isOpen }: AgentsModalProps) => {
       formData.append("phone", phone);
       formData.append("avatar", avatar as Blob, avatar?.name);
 
-      await axios.post(
+      const response = await axios.post(
         "https://api.real-estate-manager.redberryinternship.ge/api/agents",
         formData,
         {
@@ -97,10 +94,19 @@ const AgentsModal = ({ onClose, isOpen }: AgentsModalProps) => {
       );
 
       alert("აგენტი წარმატებით დაემატა");
-      localStorage.removeItem("name");
-      localStorage.removeItem("surname");
-      localStorage.removeItem("email");
-      localStorage.removeItem("phone");
+
+      onAgentAdded({
+        id: response.data.id,
+        name: response.data.name,
+        surname: response.data.surname,
+      });
+
+      setName("");
+      setSurname("");
+      setEmail("");
+      setPhone("");
+      setAvatar(null);
+
       onClose();
     } catch (error: any) {
       if (error.response) {
@@ -127,91 +133,89 @@ const AgentsModal = ({ onClose, isOpen }: AgentsModalProps) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 font-firaGo bg-black bg-opacity-30 flex justify-center content-center items-center z-50">
-      <div className="bg-white p-8 rounded-xl shadow-lg  h-[784px] w-[1009px]">
+    <div className="fixed inset-0 font-firaGo bg-black bg-opacity-30 flex justify-center items-center z-50">
+      <div className="bg-white p-8 rounded-xl shadow-lg h-[784px] w-[1009px]">
         <h2 className="text-center text-[32px] font-semibold mt-[75px]">აგენტის დამატება</h2>
         {errorMessage && <p className="text-red-500 text-center">{errorMessage}</p>}
 
-        <div className="grid grid-cols-2 gap-4 mb-4 mt-[99px]">
-        <div>
-  <label htmlFor="name" className="w-[384px] font-semibold h-[17px] text-[14px]">
-    სახელი *
-  </label>
-  <input
-    type="text"
-    id="name"
-    className={`border w-full p-2 rounded-md text-black ${validations.name === "default" ? "border-black" : getInputClasses(validations.name)}`}
-    value={name}
-    onChange={(e) => handleInputChange("name", e.target.value)}
-  />
-
-  <p className={`${validations.name === "invalid" ? "text-red-500" : validations.name === "valid" ? "text-green-500" : "text-black"}`}>
-    ✔მინიმუმ 2 სიმბოლო
-  </p>
-</div>
-
+        <div className="grid grid-cols-2 gap-4 mb-4 mt-[61px] max-w-[799px] ml-[80px] ">
+          <div>
+            <label htmlFor="name" className=" font-semibold h-[17px] text-[14px]">
+              სახელი *
+            </label>
+            <input
+              type="text"
+              id="name"
+              className={`border w-[384px]  p-2 rounded-md text-black ${validations.name === "default" ? "border-black" : getInputClasses(validations.name)}`}
+              value={name}
+              onChange={(e) => handleInputChange("name", e.target.value)}
+            />
+            <p className={`${validations.name === "invalid" ? "text-red-500" : validations.name === "valid" ? "text-green-500" : "text-black"}`}>
+              ✔ მინიმუმ 2 სიმბოლო
+            </p>
+          </div>
 
           <div>
-            <label htmlFor="surname" className="w-[384px] font-semibold h-[17px] text-[14px]">გვარი *</label>
+            <label htmlFor="surname" className=" font-semibold h-[17px] text-[14px]">გვარი *</label>
             <input
               type="text"
               id="surname"
-              className={`border w-full p-2 rounded-md text-black ${validations.surname === "default" ? "border-black" : getInputClasses(validations.surname)}`}
+              className={`border w-[384px] p-2 rounded-md text-black ${validations.surname === "default" ? "border-black" : getInputClasses(validations.surname)}`}
               value={surname}
               onChange={(e) => handleInputChange("surname", e.target.value)}
             />
-              <p className={`${validations.surname === "invalid" ? "text-red-500" : validations.surname === "valid" ? "text-green-500" : "text-black"}`}>
-    ✔მინიმუმ 2 სიმბოლო
-  </p>
+            <p className={`${validations.surname === "invalid" ? "text-red-500" : validations.surname === "valid" ? "text-green-500" : "text-black"}`}>
+              ✔ მინიმუმ 2 სიმბოლო
+            </p>
           </div>
 
           <div>
-            <label htmlFor="email" className="w-[384px] font-semibold h-[17px] text-[14px]">ელ-ფოსტა *</label>
+            <label htmlFor="email" className=" font-semibold h-[17px] text-[14px]">ელ-ფოსტა *</label>
             <input
               type="email"
               id="email"
-              className={`border w-full p-2 rounded-md text-black ${validations.email === "default" ? "border-black" : getInputClasses(validations.email)}`}
+              className={`border w-[384px] p-2 rounded-md text-black ${validations.email === "default" ? "border-black" : getInputClasses(validations.email)}`}
               value={email}
               onChange={(e) => handleInputChange("email", e.target.value)}
             />
-            <p className={`${validations.email === "invalid" ? "text-red-500" : validations.email === "valid" ? "text-green-500" : "text-black"}`}>გამოიყენეთ @redberry.ge ფოსტა</p>
+            <p className={`${validations.email === "invalid" ? "text-red-500" : validations.email === "valid" ? "text-green-500" : "text-black"}`}>✔ გამოიყენეთ @redberry.ge ფოსტა</p>
           </div>
 
           <div>
-            <label htmlFor="phone" className="w-[384px] font-semibold h-[17px] text-[14px]">ტელეფონის ნომერი *</label>
+            <label htmlFor="phone" className=" font-semibold h-[17px] text-[14px]">ტელეფონის ნომერი *</label>
             <input
               type="text"
               id="phone"
               maxLength={9}
-              className={`border w-full p-2 rounded-md text-black ${validations.phone === "default" ? "border-black" : getInputClasses(validations.phone)}`}
+              className={`border w-[384px] p-2 rounded-md text-black ${validations.phone === "default" ? "border-black" : getInputClasses(validations.phone)}`}
               value={phone}
               onChange={(e) => handleInputChange("phone", e.target.value)}
             />
-            <p className={`${validations.phone === "invalid" ? "text-red-500" : validations.phone === "valid" ? "text-green-500" : "text-black"}`}>✔მხოლოდ რიცხვები</p>
-
+            <p className={`${validations.phone === "invalid" ? "text-red-500" : validations.phone === "valid" ? "text-green-500" : "text-black"}`}>✔ მხოლოდ რიცხვები</p>
           </div>
 
-          <div className="ml-[80px] mt-[55px]">
-            <FileUpload onFileSelect={(file) => {
-              setAvatar(file);
-              setValidations((prev) => ({
-                ...prev,
-                avatar: validateField("avatar", file),
-              }));
-            }} />
-            {validations.avatar === "invalid" && <p className="text-red-500">ფოტოს დამატება აუცილებელია</p>}
-          </div>
         </div>
+          <div className="ml-[80px] mt-[34px]  ">
+            <FileUpload
+              onFileSelect={(file) => {
+                setAvatar(file);
+                setValidations((prev) => ({
+                  ...prev,
+                  avatar: validateField("avatar", file),
+                }));
+              }}
+            />
+          </div>
 
-        <div className="flex justify-end space-x-4 mt-[30px]">
+        <div className=" flex justify-end space-x-4 mt-[90px] text-[16px] font-firaGo ">
           <button
-            className="px-6 py-2 border border-red-500 text-red-500 rounded-md hover:bg-red-50"
+            className="px-6 py-2 border w-[161px] border-red-500 text-red-500 rounded-md hover:bg-red-50"
             onClick={onClose}
           >
             გაუქმება
           </button>
           <button
-            className="px-6 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+            className="px-6 py-2  bg-red-500 text-white rounded-md hover:bg-red-600"
             onClick={handleSubmit}
           >
             დაამატე აგენტი

@@ -40,7 +40,7 @@ const Realestates = () => {
   }
 
   return (
-    <div className="flex justify-center py-8">
+    <div className="flex justify-center py-8 font-firaGo">
       {properties.length === 0 ? (
         <p>No properties found</p>
       ) : (
@@ -51,7 +51,7 @@ const Realestates = () => {
               className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
             >
               <div className="relative">
-                <span className="absolute top-[23px] left-[23px] bg-gray-600 h-[26px] w-[90px] text-white text-[14px] text-center rounded-full flex items-center justify-center font-firaGo">
+                <span className="absolute top-[23px] left-[23px] bg-gray-600 h-[26px] w-[90px] text-white text-[12px] text-center rounded-full flex items-center justify-center font-firaGo">
                   {property.is_rental ? "ქირავდება" : "იყიდება"}
                 </span>
 

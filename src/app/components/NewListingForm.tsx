@@ -12,6 +12,7 @@ import {
 } from "../services/api";
 import FileUpload from "./FileUpload";
 import AgentsModal from "./AgentsModal";
+import axios from "axios";
 
 interface NewListingFormProps {
   onSubmit: (data: any) => Promise<void>;
@@ -32,7 +33,16 @@ export default function NewListingForm({ onSubmit }: NewListingFormProps) {
   const [description, setDescription] = useState("");
   const [saleType, setSaleType] = useState("sale");
   const [agents, setAgents] = useState<Agent[]>([]);
+  const [isModalOpen, setModalOpen] = useState(false);
   const [selectedAgent, setSelectedAgent] = useState<number | null>(null);
+  const [validations, setValidations] = useState({
+    address: "default",
+    postalCode: "default",
+    price: "default",
+    area: "default",
+    bedrooms: "default",
+    description: "default",
+  });
 
   const router = useRouter();
 
@@ -96,47 +106,44 @@ export default function NewListingForm({ onSubmit }: NewListingFormProps) {
     }
   };
 
+
+  const validateField = (field: string, value: string | File | null) => {
+    if (!value) return "default";
+    switch (field) {
+      case "address":
+        return typeof value === "string" && value.length >= 2
+          ? "valid"
+          : "invalid";
+      case "postalCode":
+        return typeof value === "string" && !isNaN(Number(value))
+          ? "valid"
+          : "invalid";
+      case "price":
+      case "area":
+        return typeof value === "string" && !isNaN(Number(value))
+          ? "valid"
+          : "invalid";
+      case "bedrooms":
+        return typeof value === "string" && Number.isInteger(Number(value))
+          ? "valid"
+          : "invalid";
+      case "description":
+        return typeof value === "string" && value.split(" ").length >= 5
+          ? "valid"
+          : "invalid";
+      default:
+        return "default";
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!address || address.length < 2) {
-      alert("მისამართი აუცილებელია და უნდა შეიცავდეს მინიმუმ ორ ასოს.");
-      return;
-    }
-    if (!postalCode || isNaN(Number(postalCode))) {
-      alert("საფოსტო კოდი აუცილებელია და უნდა იყოს რიცხვების სახით.");
-      return;
-    }
-    if (!selectedRegion) {
-      alert("გთხოვთ აირჩიოთ რეგიონი.");
-      return;
-    }
-    if (!selectedCities.length) {
-      alert("გთხოვთ აირჩიოთ ქალაქი.");
-      return;
-    }
-    if (!price || isNaN(Number(price))) {
-      alert("ფასის მითითება აუცილებელია.");
-      return;
-    }
-    if (!area || isNaN(Number(area))) {
-      alert("ფართობის მითითება აუცილებელია.");
-      return;
-    }
-    if (!bedrooms || !Number.isInteger(Number(bedrooms))) {
-      alert("საძინებლების რაოდენობის მითითება აუცილებელია.");
-      return;
-    }
-    if (!description || description.split(" ").length < 5) {
-      alert("აღწერა უნდა შეიცავდეს მინიმუმ 5 სიტყვას");
-      return;
-    }
-    if (!file) {
-      alert("სურათის დამატება აუცილებელია.");
-      return;
-    }
-    if (!selectedAgent) {
-      alert("გთხოვთ აირჩიოთ აგენტი.");
+    const isValidForm = Object.values(validations).every(
+      (status) => status === "valid"
+    );
+
+    if (!isValidForm) {
       return;
     }
 
@@ -162,6 +169,17 @@ export default function NewListingForm({ onSubmit }: NewListingFormProps) {
     }
   };
 
+  const getInputClasses = (status: string) => {
+    switch (status) {
+      case "valid":
+        return "border-green-500 text-green-500";
+      case "invalid":
+        return "border-red-500 text-red-500";
+      default:
+        return "border-gray-300";
+    }
+  };
+
   const handleCancel = () => {
     setAddress("");
     setPostalCode("");
@@ -177,8 +195,23 @@ export default function NewListingForm({ onSubmit }: NewListingFormProps) {
     router.push("/");
   };
 
+  const openModal = () => {
+    setModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setModalOpen(false);
+  };
+
+  const handleAgentAdded = (newAgent: { id: number; name: string; surname: string }) => {
+    setAgents((prevAgents) => [...prevAgents, newAgent]);
+  };
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-8 max-w-[790px] mx-auto">
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-8 max-w-[790px] mx-auto font-firaGo"
+    >
       <h1 className="text-4xl font-bold mb-8 text-center">
         ლისტინგის დამატება
       </h1>
@@ -218,20 +251,56 @@ export default function NewListingForm({ onSubmit }: NewListingFormProps) {
             <input
               type="text"
               value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              required
-              minLength={2}
-              className="border p-2 w-full rounded"
+              onChange={(e) => {
+                setAddress(e.target.value);
+                setValidations((prev) => ({
+                  ...prev,
+                  address: validateField("address", e.target.value),
+                }));
+              }}
+              className={`border p-2 w-full rounded text-black ${getInputClasses(
+                validations.address
+              )}`}
             />
+            <p
+              className={`${
+                validations.address === "invalid"
+                  ? "text-red-500"
+                  : validations.address === "valid"
+                  ? "text-green-500"
+                  : "text-black"
+              }`}
+            >
+              ✔ მინიმუმ 2 სიმბოლო
+            </p>
           </div>
           <div>
             <label className="block font-semibold mb-1">საფოსტო ინდექსი*</label>
             <input
               type="text"
               value={postalCode}
-              onChange={(e) => setPostalCode(e.target.value)}
-              className="border p-2 w-full rounded"
+              onChange={(e) => {
+                setPostalCode(e.target.value);
+                setValidations((prev) => ({
+                  ...prev,
+                  postalCode: validateField("postalCode", e.target.value),
+                }));
+              }}
+              className={`border p-2 w-full rounded text-black ${getInputClasses(
+                validations.postalCode
+              )}`}
             />
+            <p
+              className={`${
+                validations.postalCode === "invalid"
+                  ? "text-red-500"
+                  : validations.postalCode === "valid"
+                  ? "text-green-500"
+                  : "text-black"
+              }`}
+            >
+              ✔ მხოლოდ რიცხვები
+            </p>
           </div>
           <div>
             <label className="block font-semibold mb-1">რეგიონი*</label>
@@ -273,9 +342,28 @@ export default function NewListingForm({ onSubmit }: NewListingFormProps) {
             <input
               type="text"
               value={price}
-              onChange={(e) => setPrice(e.target.value)}
-              className="border p-2 w-full rounded"
+              onChange={(e) => {
+                setPrice(e.target.value);
+                setValidations((prev) => ({
+                  ...prev,
+                  price: validateField("price", e.target.value),
+                }));
+              }}
+              className={`border p-2 w-full rounded text-black ${getInputClasses(
+                validations.price
+              )}`}
             />
+            <p
+              className={`${
+                validations.price === "invalid"
+                  ? "text-red-500"
+                  : validations.price === "valid"
+                  ? "text-green-500"
+                  : "text-black"
+              }`}
+            >
+              ✔ მხოლოდ რიცხვები
+            </p>
           </div>
 
           <div>
@@ -283,9 +371,28 @@ export default function NewListingForm({ onSubmit }: NewListingFormProps) {
             <input
               type="text"
               value={area}
-              onChange={(e) => setArea(e.target.value)}
-              className="border p-2 w-full rounded"
+              onChange={(e) => {
+                setArea(e.target.value);
+                setValidations((prev) => ({
+                  ...prev,
+                  area: validateField("area", e.target.value),
+                }));
+              }}
+              className={`border p-2 w-full rounded text-black ${getInputClasses(
+                validations.area
+              )}`}
             />
+            <p
+              className={`${
+                validations.area === "invalid"
+                  ? "text-red-500"
+                  : validations.area === "valid"
+                  ? "text-green-500"
+                  : "text-black"
+              }`}
+            >
+              ✔ მხოლოდ რიცხვები
+            </p>
           </div>
 
           <div>
@@ -295,39 +402,88 @@ export default function NewListingForm({ onSubmit }: NewListingFormProps) {
             <input
               type="text"
               value={bedrooms}
-              onChange={(e) => setBedrooms(e.target.value)}
-              className="border p-2 w-full rounded"
+              onChange={(e) => {
+                setBedrooms(e.target.value);
+                setValidations((prev) => ({
+                  ...prev,
+                  bedrooms: validateField("bedrooms", e.target.value),
+                }));
+              }}
+              className={`border p-2 w-full rounded text-black ${getInputClasses(
+                validations.bedrooms
+              )}`}
             />
+            <p
+              className={`${
+                validations.bedrooms === "invalid"
+                  ? "text-red-500"
+                  : validations.bedrooms === "valid"
+                  ? "text-green-500"
+                  : "text-black"
+              }`}
+            >
+              ✔ მხოლოდ რიცხვები
+            </p>
           </div>
         </div>
         <label className="block font-semibold mb-1">აღწერა*</label>
         <textarea
           value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          className="border p-2 w-full rounded"
+          onChange={(e) => {
+            setDescription(e.target.value);
+            setValidations((prev) => ({
+              ...prev,
+              description: validateField("description", e.target.value),
+            }));
+          }}
+          className={`border p-2 w-full rounded text-black resize-none	 ${getInputClasses(
+            validations.description
+          )}`}
           rows={4}
-        ></textarea>
+        />
+        <p
+          className={`${
+            validations.description === "invalid"
+              ? "text-red-500"
+              : validations.description === "valid"
+              ? "text-green-500"
+              : "text-black"
+          }`}
+        >
+          ✔ მინიმუმ 5 სიტყვა
+        </p>
 
         <div>
           <FileUpload onFileSelect={(file) => setFile(file)} />
         </div>
       </div>
-
       <div>
-        <label className="block font-semibold mb-1">აგენტი</label>
-        <select
-          onChange={(e) => setSelectedAgent(Number(e.target.value))}
-          className="border p-2 w-[384px] rounded"
-        >
-          <option value="">აირჩიეთ აგენტი</option>
-          {agents.map((agent) => (
-            <option key={agent.id} value={agent.id}>
-              {agent.name}
-              {agent.surname}
-            </option>
-          ))}
-        </select>
-      </div>
+      <label className="block font-semibold mb-1">აგენტი</label>
+      <select
+        value={selectedAgent || ""}
+        onChange={(e) => {
+          const selectedValue = e.target.value;
+          if (selectedValue === "addAgent") {
+            openModal();
+            e.target.value = "";
+          } else {
+            setSelectedAgent(Number(selectedValue));
+          }
+        }}
+        className="border border-slate-500 p-2 w-[384px] h-[42px] rounded-t-[6px] font-firaGo text-[14px]  "
+      >
+        <option value="">აირჩიეთ</option>
+        <option value="addAgent">+ აგენტის დამატება</option>
+
+        {agents.map((agent) => (
+          <option key={agent.id} value={agent.id}>
+            {agent.name} {agent.surname}
+          </option>
+        ))}
+      </select>
+
+      <AgentsModal isOpen={isModalOpen} onClose={closeModal} onAgentAdded={handleAgentAdded} />
+    </div>
 
       <div className="text-right">
         <button
