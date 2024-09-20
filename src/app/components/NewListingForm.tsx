@@ -203,7 +203,7 @@ export default function NewListingForm({ onSubmit }: NewListingFormProps) {
     setModalOpen(false);
   };
 
-  const handleAgentAdded = (newAgent: { id: number; name: string; surname: string }) => {
+  const handleAgentAdded = (newAgent: { id: number; name: string; surname: string;avatar: string; }) => {
     setAgents((prevAgents) => [...prevAgents, newAgent]);
   };
 
