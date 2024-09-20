@@ -21,10 +21,11 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <header>
-          <div className="border-[1px] border-gray-300 px-[162px] py-[36px] h-[100px] w-full">
+          <div className="border-[1px] border-gray-300 px-[162px] py-[36px] h-[100px]">
             <Link href="/">
               <img className="h-[24px] w-[150px] cursor-pointer" src="LOGO.png" alt="Logo" />
             </Link>
+            <Link href={`/aboutproperty`}></Link>
           </div>
         </header>
         {children}

@@ -2,6 +2,7 @@
 import { useState } from "react";
 import RealEstates from "./components/realestates"
 import RegionFilter from "./components/RegionFilter";
+
 export default function Home() {
   const [selectedRegions, setSelectedRegions] = useState<number[]>([]);
 
@@ -16,7 +17,7 @@ export default function Home() {
           <RegionFilter onChange={handleFilterChange} />
         </aside>
         <main className="col-span-3">
-          <RealEstates />
+          <RealEstates  />
         </main>
       </div>
     </div>

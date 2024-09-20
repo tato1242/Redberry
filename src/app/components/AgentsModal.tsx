@@ -5,7 +5,7 @@ import FileUpload from "./FileUpload";
 interface AgentsModalProps {
   onClose: () => void;
   isOpen: boolean;
-  onAgentAdded: (newAgent: { id: number; name: string; surname: string }) => void;
+  onAgentAdded: (newAgent: { id: number; name: string; surname: string;avatar:string; }) => void;
 }
 
 const AgentsModal = ({ onClose, isOpen, onAgentAdded }: AgentsModalProps) => {
@@ -99,6 +99,7 @@ const AgentsModal = ({ onClose, isOpen, onAgentAdded }: AgentsModalProps) => {
         id: response.data.id,
         name: response.data.name,
         surname: response.data.surname,
+        avatar:response.data.string,
       });
 
       setName("");

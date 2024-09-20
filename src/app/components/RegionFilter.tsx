@@ -14,6 +14,7 @@ export default function RegionFilter({ onChange }: RegionFilterProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isModalOpen, setModalOpen] = useState(false);
   const [agents, setAgents] = useState<Agent[]>([]);
+  
 
   useEffect(() => {
     async function fetchRegions() {
@@ -50,7 +51,7 @@ export default function RegionFilter({ onChange }: RegionFilterProps) {
   const closeModal = () => {
     setModalOpen(false);
   };
-  const handleAgentAdded = (newAgent: { id: number; name: string; surname: string }) => {
+  const handleAgentAdded = (newAgent: { id: number; name: string; surname: string;avatar:string; }) => {
     setAgents((prevAgents) => [...prevAgents, newAgent]);
   };
 
