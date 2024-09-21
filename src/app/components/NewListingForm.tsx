@@ -45,47 +45,7 @@ export default function NewListingForm({ onSubmit }: NewListingFormProps) {
 
   const router = useRouter();
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      setAddress(localStorage.getItem("address") || "");
-      setPostalCode(localStorage.getItem("postalCode") || "");
-      setSelectedRegion(JSON.parse(localStorage.getItem("selectedRegion") || "null"));
-      setSelectedCities(JSON.parse(localStorage.getItem("selectedCities") || "[]"));
-      setPrice(localStorage.getItem("price") || "");
-      setArea(localStorage.getItem("area") || "");
-      setBedrooms(localStorage.getItem("bedrooms") || "");
-      setDescription(localStorage.getItem("description") || "");
-      setSaleType(localStorage.getItem("saleType") || "sale");
-      setSelectedAgent(JSON.parse(localStorage.getItem("selectedAgent") || "null"));
-    }
-  }, []);
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("address", address);
-      localStorage.setItem("postalCode", postalCode);
-      localStorage.setItem("selectedRegion", JSON.stringify(selectedRegion));
-      localStorage.setItem("selectedCities", JSON.stringify(selectedCities));
-      localStorage.setItem("price", price);
-      localStorage.setItem("area", area);
-      localStorage.setItem("bedrooms", bedrooms);
-      localStorage.setItem("description", description);
-      localStorage.setItem("saleType", saleType);
-      localStorage.setItem("selectedAgent", JSON.stringify(selectedAgent));
-    }
-  }, [
-    address,
-    postalCode,
-    selectedRegion,
-    selectedCities,
-    price,
-    area,
-    bedrooms,
-    description,
-    saleType,
-    selectedAgent,
-  ]);
-
+  
   useEffect(() => {
     async function fetchRegions() {
       try {
