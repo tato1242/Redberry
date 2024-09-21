@@ -12,29 +12,34 @@ import {
 } from "../services/api";
 import FileUpload from "./FileUpload";
 import AgentsModal from "./AgentsModal";
-import axios from "axios";
 
 interface NewListingFormProps {
   onSubmit: (data: any) => Promise<void>;
 }
 
 export default function NewListingForm({ onSubmit }: NewListingFormProps) {
-  const [address, setAddress] = useState("");
-  const [postalCode, setPostalCode] = useState("");
+  const [address, setAddress] = useState(localStorage.getItem("address") || "");
+  const [postalCode, setPostalCode] = useState(localStorage.getItem("postalCode") || "");
   const [regions, setRegions] = useState<Region[]>([]);
   const [cities, setCities] = useState<City[]>([]);
   const [file, setFile] = useState<File | null>(null);
-  const [selectedRegion, setSelectedRegion] = useState<number | null>(null);
+  const [selectedRegion, setSelectedRegion] = useState<number | null>(
+    JSON.parse(localStorage.getItem("selectedRegion") || "null")
+  );
   const [filteredCities, setFilteredCities] = useState<City[]>([]);
-  const [selectedCities, setSelectedCities] = useState<number[]>([]);
-  const [price, setPrice] = useState("");
-  const [area, setArea] = useState("");
-  const [bedrooms, setBedrooms] = useState("");
-  const [description, setDescription] = useState("");
-  const [saleType, setSaleType] = useState("sale");
+  const [selectedCities, setSelectedCities] = useState<number[]>(
+    JSON.parse(localStorage.getItem("selectedCities") || "[]")
+  );
+  const [price, setPrice] = useState(localStorage.getItem("price") || "");
+  const [area, setArea] = useState(localStorage.getItem("area") || "");
+  const [bedrooms, setBedrooms] = useState(localStorage.getItem("bedrooms") || "");
+  const [description, setDescription] = useState(localStorage.getItem("description") || "");
+  const [saleType, setSaleType] = useState(localStorage.getItem("saleType") || "sale");
   const [agents, setAgents] = useState<Agent[]>([]);
   const [isModalOpen, setModalOpen] = useState(false);
-  const [selectedAgent, setSelectedAgent] = useState<number | null>(null);
+  const [selectedAgent, setSelectedAgent] = useState<number | null>(
+    JSON.parse(localStorage.getItem("selectedAgent") || "null")
+  );
   const [validations, setValidations] = useState({
     address: "default",
     postalCode: "default",
@@ -45,6 +50,19 @@ export default function NewListingForm({ onSubmit }: NewListingFormProps) {
   });
 
   const router = useRouter();
+
+  useEffect(() => {
+    localStorage.setItem("address", address);
+    localStorage.setItem("postalCode", postalCode);
+    localStorage.setItem("selectedRegion", JSON.stringify(selectedRegion));
+    localStorage.setItem("selectedCities", JSON.stringify(selectedCities));
+    localStorage.setItem("price", price);
+    localStorage.setItem("area", area);
+    localStorage.setItem("bedrooms", bedrooms);
+    localStorage.setItem("description", description);
+    localStorage.setItem("saleType", saleType);
+    localStorage.setItem("selectedAgent", JSON.stringify(selectedAgent));
+  }, [address, postalCode, selectedRegion, selectedCities, price, area, bedrooms, description, saleType, selectedAgent]);
 
   useEffect(() => {
     async function fetchRegions() {
@@ -106,7 +124,6 @@ export default function NewListingForm({ onSubmit }: NewListingFormProps) {
     }
   };
 
-
   const validateField = (field: string, value: string | File | null) => {
     if (!value) return "default";
     switch (field) {
@@ -163,6 +180,7 @@ export default function NewListingForm({ onSubmit }: NewListingFormProps) {
 
     try {
       await onSubmit(formData);
+      localStorage.clear();
       router.push("/");
     } catch (error) {
       alert("An error occurred while submitting the form. Please try again.");
@@ -191,6 +209,7 @@ export default function NewListingForm({ onSubmit }: NewListingFormProps) {
     setDescription("");
     setFile(null);
     setSelectedAgent(null);
+    localStorage.clear();
 
     router.push("/");
   };
@@ -203,7 +222,7 @@ export default function NewListingForm({ onSubmit }: NewListingFormProps) {
     setModalOpen(false);
   };
 
-  const handleAgentAdded = (newAgent: { id: number; name: string; surname: string;avatar: string; }) => {
+  const handleAgentAdded = (newAgent: { id: number; name: string; surname: string; avatar: string; }) => {
     setAgents((prevAgents) => [...prevAgents, newAgent]);
   };
 

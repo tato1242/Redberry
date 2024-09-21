@@ -17,7 +17,11 @@ const Slider: React.FC<SliderProps> = ({ listings, onSelectListing }) => {
   return (
     <div className="slider-container">
       {listings.map((listing) => (
-        <div key={listing.id} className="slider-item" onClick={() => onSelectListing(listing.id)}>
+        <div
+          key={listing.id}
+          className="slider-item"
+          onClick={() => onSelectListing(listing.id)}
+        >
           <img src={listing.image} alt="Listing" />
           <p>{listing.price} ₾</p>
         </div>

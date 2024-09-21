@@ -90,7 +90,7 @@ export async function getListingsByRegionId(regionId: number): Promise<Listing[]
   const result = await response.json();
   return result.data.map((listing: any) => ({
     id: listing.id,
-    image: listing.image,  // Ensure this is the correct field for the image URL
+    image: listing.image,
     price: listing.price,
   }));
 }

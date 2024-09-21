@@ -2,11 +2,20 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { getRegions } from "../services/api";
+import { getRegions, Region } from "../services/api";
+import RegionFilter from "./RegionFilter";
+
 const Realestates = () => {
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [regions, setRegions] = useState<Region[]>([]);
+  const [selectedRegions, setSelectedRegions] = useState<string[]>([]);
+  const [isRegionDropdownOpen, setIsRegionDropdownOpen] = useState(false);
+  const [isPriceDropdownOpen, setIsPriceDropdownOpen] = useState(false);
+  const [isAreaDropdownOpen, setIsAreaDropdownOpen] = useState(false);
+  const [isBedroomDropdownOpen, setIsBedroomDropdownOpen] = useState(false);
+
   const [filters, setFilters] = useState({
     minPrice: "",
     maxPrice: "",
@@ -17,6 +26,27 @@ const Realestates = () => {
   });
 
   const [filteredProperties, setFilteredProperties] = useState([]);
+
+  const clearFilters = () => {
+    setFilters({
+      minPrice: "",
+      maxPrice: "",
+      minArea: "",
+      maxArea: "",
+      region: "",
+      bedrooms: "",
+    });
+    setSelectedRegions([]);
+    setFilteredProperties(properties);
+  };
+
+  const removeFilter = (filterKey: string, value: string) => {
+    setFilters((prevFilters) => ({
+      ...prevFilters,
+      [filterKey]: "", 
+    }));
+    applyFilters();
+  };
 
   useEffect(() => {
     const fetchProperties = async () => {
@@ -42,7 +72,61 @@ const Realestates = () => {
 
     fetchProperties();
   }, []);
-  
+
+  const handleRegionCheckboxChange = (regionName: string) => {
+    setSelectedRegions((prevSelectedRegions) => {
+      if (prevSelectedRegions.includes(regionName)) {
+        return prevSelectedRegions.filter((region) => region !== regionName);
+      } else {
+        return [...prevSelectedRegions, regionName];
+      }
+    });
+  };
+
+  useEffect(() => {
+    const fetchRegions = async () => {
+      try {
+        console.log("Fetching regions...");
+        const regionsData = await getRegions();
+        console.log("Regions fetched: ", regionsData);
+        setRegions(regionsData);
+      } catch (error) {
+        console.error("Error fetching regions:", error);
+        setError("Failed to fetch regions.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRegions();
+  }, []);
+
+  const toggleRegionDropdown = () => {
+    setIsRegionDropdownOpen(!isRegionDropdownOpen);
+    setIsPriceDropdownOpen(false);
+    setIsBedroomDropdownOpen(false);
+    setIsAreaDropdownOpen(false);
+  };
+
+  const togglePriceDropdown = () => {
+    setIsPriceDropdownOpen(!isPriceDropdownOpen);
+    setIsRegionDropdownOpen(false);
+    setIsBedroomDropdownOpen(false);
+    setIsAreaDropdownOpen(false);
+  };
+
+  const toggleAreaDropdown = () => {
+    setIsAreaDropdownOpen(!isAreaDropdownOpen);
+    setIsRegionDropdownOpen(false);
+    setIsPriceDropdownOpen(false);
+    setIsBedroomDropdownOpen(false);
+  };
+  const toggleBedroomDropdown = () => {
+    setIsBedroomDropdownOpen(!isBedroomDropdownOpen);
+    setIsAreaDropdownOpen(false);
+    setIsRegionDropdownOpen(false);
+    setIsPriceDropdownOpen(false);
+  };
 
   const handleFilterChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -53,44 +137,54 @@ const Realestates = () => {
       [name]: value,
     }));
   };
-  
 
   const applyFilters = () => {
-    const { minPrice, maxPrice, minArea, maxArea, region, bedrooms } = filters;
+    setIsRegionDropdownOpen(false);
 
-    const areAllFiltersCleared =
-      !minPrice && !maxPrice && !minArea && !maxArea && !region && !bedrooms;
+    const { minPrice, maxPrice, minArea, maxArea, bedrooms } = filters;
 
-    if (areAllFiltersCleared) {
+    const isAnyFilterApplied =
+      minPrice ||
+      maxPrice ||
+      minArea ||
+      maxArea ||
+      selectedRegions.length > 0 ||
+      bedrooms;
+
+    if (!isAnyFilterApplied) {
       setFilteredProperties(properties);
       return;
     }
 
-    if (minPrice && maxPrice && parseFloat(minPrice) > parseFloat(maxPrice)) {
-      alert("Please enter valid numbers for the price range.");
-      return;
-    }
-
-    if (minArea && maxArea && parseFloat(minArea) > parseFloat(maxArea)) {
-      alert("Please enter valid numbers for the area range.");
-      return;
-    }
-
     const filtered = properties.filter((property: any) => {
-      const matchesPrice =
-        (!minPrice || property.price >= parseFloat(minPrice)) &&
-        (!maxPrice || property.price <= parseFloat(maxPrice));
+      let matchesAnyFilter = false;
 
-      const matchesArea =
-        (!minArea || property.area >= parseFloat(minArea)) &&
-        (!maxArea || property.area <= parseFloat(maxArea));
+      if (minPrice && property.price >= parseFloat(minPrice)) {
+        matchesAnyFilter = true;
+      }
+      if (maxPrice && property.price <= parseFloat(maxPrice)) {
+        matchesAnyFilter = true;
+      }
 
-      const matchesRegion = !region || property.city?.name === region;
+      if (minArea && property.area >= parseFloat(minArea)) {
+        matchesAnyFilter = true;
+      }
+      if (maxArea && property.area <= parseFloat(maxArea)) {
+        matchesAnyFilter = true;
+      }
 
-      const matchesBedrooms =
-        !bedrooms || property.bedrooms === parseInt(bedrooms, 10);
+      if (
+        selectedRegions.length > 0 &&
+        selectedRegions.includes(property.city?.region?.name)
+      ) {
+        matchesAnyFilter = true;
+      }
 
-      return matchesPrice && matchesArea && matchesRegion && matchesBedrooms;
+      if (bedrooms && property.bedrooms === parseInt(bedrooms, 10)) {
+        matchesAnyFilter = true;
+      }
+
+      return matchesAnyFilter;
     });
 
     setFilteredProperties(filtered);
@@ -105,94 +199,346 @@ const Realestates = () => {
   }
 
   return (
-    <div className="flex flex-col justify-center py-8 font-firaGo">
-      <div className="flex flex-wrap gap-4 mb-8">
-        <div>
-          <label htmlFor="minPrice">Min Price</label>
-          <input
-            type="number"
-            id="minPrice"
-            name="minPrice"
-            value={filters.minPrice}
-            onChange={handleFilterChange}
-            className="border p-2 rounded"
-          />
+    <div className="flex flex-col justify-center font-firaGo ">
+      <div className="flex justify-between items-start w-full mb-8">
+  <div className="flex flex-wrap gap-[20px] w-[785px] h-[50px] border border-grey rounded-md">
+    <div className="relative z-50">
+      <button
+        className="mt-2 border rounded-lg shadow-md w-[116px] h-[35px] bg-white"
+        onClick={toggleRegionDropdown}
+        title="აირჩიე რეგიონი"
+      >
+        რეგიონი
+      </button>
+      {isRegionDropdownOpen && (
+        <div className="absolute mt-2 border rounded-lg shadow-md bg-white w-[731px]">
+          <h3 className="font-firaGo w-[679px] h-[19px] text-[16px] ml-4 mt-4 font-bold">
+            რეგიონის მიხედვით
+          </h3>
+          <ul className="p-4 grid grid-cols-3 gap-4 font-firaGo text-[14px] mt-2">
+            {regions.map((region) => (
+              <li key={region.id} className="cursor-pointer hover:bg-gray-100">
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={selectedRegions.includes(region.name)}
+                    onChange={() => handleRegionCheckboxChange(region.name)}
+                    className="mr-2"
+                  />
+                  {region.name}
+                </label>
+              </li>
+            ))}
+            <div className="ml-[580px] mt-[8px] h-[33px] w-[77px]">
+              <button
+                onClick={applyFilters}
+                className="bg-red-500 text-white font-medium px-6 py-2 rounded-md hover:bg-red-600"
+              >
+                არჩევა
+              </button>
+            </div>
+          </ul>
         </div>
-        <div>
-          <label htmlFor="maxPrice">Max Price</label>
-          <input
-            type="number"
-            id="maxPrice"
-            name="maxPrice"
-            value={filters.maxPrice}
-            onChange={handleFilterChange}
-            className="border p-2 rounded"
-          />
-        </div>
-        <div>
-          <label htmlFor="minArea">Min Area (m²)</label>
-          <input
-            type="number"
-            id="minArea"
-            name="minArea"
-            value={filters.minArea}
-            onChange={handleFilterChange}
-            className="border p-2 rounded"
-          />
-        </div>
-        <div>
-          <label htmlFor="maxArea">Max Area (m²)</label>
-          <input
-            type="number"
-            id="maxArea"
-            name="maxArea"
-            value={filters.maxArea}
-            onChange={handleFilterChange}
-            className="border p-2 rounded"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="region">Region</label>
-          <select
-            id="region"
-            name="region"
-            value={filters.region}
-            onChange={handleFilterChange}
-            className="border p-2 rounded"
-          >
-            <option value="">All Regions</option>
-            <option value="Tbilisi">Tbilisi</option>
-            <option value="Batumi">Batumi</option>
-          </select>
-        </div>
-
-        <div>
-          <label htmlFor="bedrooms">Bedrooms</label>
-          <input
-            type="number"
-            id="bedrooms"
-            name="bedrooms"
-            value={filters.bedrooms}
-            onChange={handleFilterChange}
-            className="border p-2 rounded"
-          />
-        </div>
-
+      )}
+      {filters.region && (
         <button
-          onClick={applyFilters}
-          className="bg-blue-500 text-white p-2 rounded"
+          onClick={() => removeFilter("region", filters.region)}
+          className="filter-tag w-[full] border rounded-xl p-1"
         >
-          Apply Filters
+          {filters.region} ✕
         </button>
-      </div>
+      )}
+    </div>
+
+    <div className="relative z-50">
+      <button
+        className="mt-2 border rounded-lg shadow-md w-[199px] h-[35px] bg-white"
+        onClick={togglePriceDropdown}
+        title="აირჩიე საფასო კატეგორია"
+      >
+        საფასო კატეგორია
+      </button>
+      {isPriceDropdownOpen && (
+        <div className="absolute mt-2 border rounded-lg shadow-md bg-white p-4 w-[300px]">
+          <h3 className="font-firaGo w-full text-[16px] mb-4 font-bold">
+            ფასის მიხედვით
+          </h3>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="mb-4">
+              <input
+                placeholder="  დან"
+                type="number"
+                id="minPrice"
+                name="minPrice"
+                value={filters.minPrice}
+                onChange={handleFilterChange}
+                className="mt-2 border rounded-lg shadow-md w-full h-[35px] bg-white"
+              />
+            </div>
+            <div>
+              <input
+                placeholder="  მდე"
+                type="number"
+                id="maxPrice"
+                name="maxPrice"
+                value={filters.maxPrice}
+                onChange={handleFilterChange}
+                className="mt-2 border rounded-lg shadow-md w-full h-[35px] bg-white"
+              />
+            </div>
+
+            <div className="col-span-2 grid grid-cols-2 gap-2">
+              <button
+                onClick={() => {
+                  setFilters({
+                    ...filters,
+                    maxPrice: "50000",
+                  });
+                }}
+                className="p-2 "
+              >
+                50,000 ₾
+              </button>
+              <button
+                onClick={() => {
+                  setFilters({
+                    ...filters,
+                    minPrice: "50000",
+                    maxPrice: "100000",
+                  });
+                }}
+                className="p-2 "
+              >
+                100,000 ₾
+              </button>
+              <button
+                onClick={() => {
+                  setFilters({
+                    ...filters,
+                    minPrice: "100000",
+                    maxPrice: "150000",
+                  });
+                }}
+                className="p-2 "
+              >
+                150,000 ₾
+              </button>
+              <button
+                onClick={() => {
+                  setFilters({
+                    ...filters,
+                    minPrice: "150000",
+                    maxPrice: "200000",
+                  });
+                }}
+                className="p-2 "
+              >
+                200,000 ₾
+              </button>
+              <button
+                onClick={() => {
+                  setFilters({
+                    ...filters,
+                    minPrice: "200000",
+                    maxPrice: "300000",
+                  });
+                }}
+                className="p-2 "
+              >
+                300,000 ₾
+              </button>
+            </div>
+
+            <div className="ml-[150px] h-[33px] w-[77px]">
+              <button
+                onClick={applyFilters}
+                className="bg-red-500 text-white font-medium px-6 py-2 rounded-md hover:bg-red-600"
+              >
+                არჩევა
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+
+    <div className="relative z-50">
+      <button
+        className="mt-2 border rounded-lg shadow-md w-[124px] h-[35px] bg-white"
+        onClick={toggleAreaDropdown}
+        title="აირჩიე ფართობი"
+      >
+        ფართობი
+      </button>
+      {isAreaDropdownOpen && (
+        <div className="absolute mt-2 border rounded-lg shadow-md bg-white p-4 w-[300px]">
+          <h3 className="font-firaGo w-full text-[16px] mb-4 font-bold">
+            ფართის მიხედვით
+          </h3>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="mb-4">
+              <input
+                placeholder="  დან"
+                type="number"
+                id="minArea"
+                name="minArea"
+                value={filters.minArea}
+                onChange={handleFilterChange}
+                className="mt-2 border rounded-lg shadow-md w-full h-[35px] bg-white"
+              />
+            </div>
+            <div>
+              <input
+                placeholder="  მდე"
+                type="number"
+                id="maxArea"
+                name="maxArea"
+                value={filters.maxArea}
+                onChange={handleFilterChange}
+                className="mt-2 border rounded-lg shadow-md w-full h-[35px] bg-white"
+              />
+            </div>
+            <div className="col-span-2 grid grid-cols-2 gap-2">
+              <button
+                onClick={() => {
+                  setFilters({
+                    ...filters,
+                    maxArea: "50000",
+                  });
+                }}
+                className="p-2 "
+              >
+                50,000 მ²
+              </button>
+              <button
+                onClick={() => {
+                  setFilters({
+                    ...filters,
+                    minArea: "50000",
+                    maxArea: "100000",
+                  });
+                }}
+                className="p-2 "
+              >
+                100,000 მ²
+              </button>
+              <button
+                onClick={() => {
+                  setFilters({
+                    ...filters,
+                    minArea: "100000",
+                    maxArea: "150000",
+                  });
+                }}
+                className="p-2 "
+              >
+                150,000 მ²
+              </button>
+              <button
+                onClick={() => {
+                  setFilters({
+                    ...filters,
+                    minArea: "150000",
+                    maxArea: "200000",
+                  });
+                }}
+                className="p-2 "
+              >
+                200,000 მ²
+              </button>
+              <button
+                onClick={() => {
+                  setFilters({
+                    ...filters,
+                    minArea: "200000",
+                    maxArea: "300000",
+                  });
+                }}
+                className="p-2 "
+              >
+                300,000 მ²
+              </button>
+            </div>
+            <div className="ml-[150px] h-[33px] w-[77px]">
+              <button
+                onClick={applyFilters}
+                className="bg-red-500 text-white font-medium px-6 py-2 rounded-md hover:bg-red-600"
+              >
+                არჩევა
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+
+    <div className="relative z-50">
+      <button
+        className="mt-2 border rounded-lg shadow-md w-[262px] h-[35px] bg-white"
+        onClick={toggleBedroomDropdown}
+        title="აირჩიე საძინებლების რაოდენობა"
+      >
+        საძინებლების რაოდენობა
+      </button>
+      {isBedroomDropdownOpen && (
+        <div className="absolute mt-2 border rounded-lg shadow-md bg-white p-4 w-[300px]">
+          <h3 className="font-firaGo w-full text-[16px] mt-4 font-bold">
+            საძინებლების რაოდენობა
+          </h3>
+          <div className="mb-4">
+            <div className="flex justify-left mt-2">
+              <input
+                type="number"
+                id="bedrooms"
+                name="bedrooms"
+                value={filters.bedrooms}
+                onChange={handleFilterChange}
+                className="border rounded-lg shadow-md w-[60px] h-[35px] bg-white"
+              />
+            </div>
+          </div>
+          <div className="ml-[150px] h-[33px] w-[77px]">
+            <button
+              onClick={applyFilters}
+              className="bg-red-500 text-white font-medium px-6 py-2 rounded-md hover:bg-red-600"
+            >
+              არჩევა
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+
+    {filters.bedrooms && (
+      <button
+        onClick={() => removeFilter("bedrooms", filters.bedrooms)}
+        className="filter-tag w-[full] border rounded-xl p-1"
+      >
+        {filters.bedrooms} ✕
+      </button>
+    )}
+
+    <button
+      onClick={clearFilters}
+      className="clear-filters-button font-firaGo text-slate-900 text-[14px] font-semibold "
+    >
+      გასუფთავება
+    </button>
+  </div>
+
+  <div className="flex-grow">
+    <RegionFilter />
+  </div>
+</div>
+
+
       <div className="flex justify-center py-8 font-firaGo">
         {filteredProperties.length === 0 ? (
           <p className="text-[20px] font-firaGo ">
             აღნიშნული მონაცემებით განცხადება არ იძებნება
           </p>
         ) : (
-          <ul className="grid gap-8 grid-cols-4 max-w-screen-m">
+          <ul className="grid gap-8 grid-cols-4 w-[1596px] ">
             {filteredProperties.map((property: any) => (
               <li
                 key={property.id}
@@ -302,8 +648,6 @@ const Realestates = () => {
           </ul>
         )}
       </div>
-
-      
     </div>
   );
 };
