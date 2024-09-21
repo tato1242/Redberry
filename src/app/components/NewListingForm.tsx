@@ -12,6 +12,7 @@ import {
 } from "../services/api";
 import FileUpload from "./FileUpload";
 import AgentsModal from "./AgentsModal";
+import axios from "axios";
 
 interface NewListingFormProps {
   onSubmit: (data: any) => Promise<void>;
@@ -45,7 +46,6 @@ export default function NewListingForm({ onSubmit }: NewListingFormProps) {
 
   const router = useRouter();
 
-  
   useEffect(() => {
     async function fetchRegions() {
       try {
@@ -106,6 +106,7 @@ export default function NewListingForm({ onSubmit }: NewListingFormProps) {
     }
   };
 
+
   const validateField = (field: string, value: string | File | null) => {
     if (!value) return "default";
     switch (field) {
@@ -162,7 +163,6 @@ export default function NewListingForm({ onSubmit }: NewListingFormProps) {
 
     try {
       await onSubmit(formData);
-      localStorage.clear();
       router.push("/");
     } catch (error) {
       alert("An error occurred while submitting the form. Please try again.");
@@ -191,7 +191,6 @@ export default function NewListingForm({ onSubmit }: NewListingFormProps) {
     setDescription("");
     setFile(null);
     setSelectedAgent(null);
-    localStorage.clear();
 
     router.push("/");
   };
@@ -204,7 +203,7 @@ export default function NewListingForm({ onSubmit }: NewListingFormProps) {
     setModalOpen(false);
   };
 
-  const handleAgentAdded = (newAgent: { id: number; name: string; surname: string; avatar: string; }) => {
+  const handleAgentAdded = (newAgent: { id: number; name: string; surname: string;avatar: string; }) => {
     setAgents((prevAgents) => [...prevAgents, newAgent]);
   };
 
